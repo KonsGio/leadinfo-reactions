@@ -144,8 +144,9 @@ clean: ## Remove node_modules & dist in frontend (local cleanup)
 	rm -rf $(FRONTEND)/node_modules $(FRONTEND)/dist
 	@echo "🧽 Frontend artifacts removed."
 
-docker-prune: ## Remove dangling images/containers/volumes (destructive)
-	@docker system prune -f
+compose-prune: ## Stop & delete THIS project's containers, images, volumes & orphans
+	$(COMPOSE) down --rmi local -v --remove-orphans
+	@echo "✅ Project containers, images, volumes removed."
 
 # -----------------------------------------------------------------------------
 # Deep Git Cleanup
@@ -173,8 +174,8 @@ purge-hard: ## Force purge vendor/storage/caches and recreate required dirs
 	@rm -rf frontend/node_modules \
 	        frontend/dist \
 	        frontend/package-lock.json
-	# Optional: also wipe anything ignored that might linger
 	@git clean -Xdf
+	$(COMPOSE) down --rmi local -v --remove-orphans
 
 	@echo "✅ HARD PURGE complete."
 	@echo "💡 Next steps:"

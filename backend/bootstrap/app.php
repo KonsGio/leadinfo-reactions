@@ -35,7 +35,7 @@ return (function () {
         'app' => [
             'origin' => getenv('APP_ORIGIN') ?: 'http://localhost:5173',
             'debug' => filter_var(getenv('APP_DEBUG') ?: '1', FILTER_VALIDATE_BOOLEAN),
-            'max_body_bytes' => (int)(getenv('APP_MAX_BODY') ?: 1_000_000),
+            'max_body_bytes' => (int)(getenv('APP_MAX_BODY') ?: 1000000),
             'log_dir' => __DIR__ . '/../storage/logs',
         ],
     ];

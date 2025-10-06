@@ -8,54 +8,62 @@ use Psr\Http\Message\ServerRequestInterface as Request;
 use Psr\Http\Server\RequestHandlerInterface as Handler;
 use Slim\Psr7\Response as SlimResponse;
 
-/**
- * Handles CORS: adds cross-origin headers and short-circuits OPTIONS requests.
- */
-final class CorsMiddleware {
+final class CorsMiddleware
+{
+    /** @var string[]|'*' */
+    private array|string $allowList;
 
-    /**
-     * @param array|string $allowed
-     */
-    public function __construct(private array|string $allowed) {
-        $this->allowed = is_array($allowed) ? $allowed : [$allowed];
+    public function __construct(string $originsCsvOrStar)
+    {
+        $originsCsvOrStar = trim($originsCsvOrStar);
+        $this->allowList = $originsCsvOrStar === '*' ? '*' : array_values(array_filter(
+            array_map('trim', explode(',', $originsCsvOrStar))
+        ));
     }
 
-    /**
-     * @param string|null $reqOrigin
-     * @return string|null
-     */
-    private function pickOrigin(?string $reqOrigin): ?string {
-        if (!$reqOrigin) return null;
-        foreach ($this->allowed as $o) {
-            if (strcasecmp($o, $reqOrigin) === 0 || $o === '*') return $reqOrigin;
-        }
-        // if '*' present, reflect reqOrigin (no credentials)
-        return in_array('*', $this->allowed, true) ? '*' : null;
-    }
+    public function __invoke(Request $request, Handler $handler): Response
+    {
+        $origin = $request->getHeaderLine('Origin');
+        $allowedOrigin = $this->resolveAllowedOrigin($origin);
 
-    /**
-     * @param $request
-     * @param $handler
-     * @return mixed
-     */
-    public function __invoke($request, $handler) {
-        $reqOrigin = $request->getHeaderLine('Origin') ?: null;
-        $allow = $this->pickOrigin($reqOrigin);
-
-        $add = function ($res) use ($allow) {
-            if ($allow) {
-                $res = $res->withHeader('Access-Control-Allow-Origin', $allow)
+        $apply = static function (Response $res) use ($allowedOrigin): Response {
+            if ($allowedOrigin !== null) {
+                $res = $res->withHeader('Access-Control-Allow-Origin', $allowedOrigin)
                     ->withHeader('Vary', 'Origin');
             }
-            return $res->withHeader('Access-Control-Allow-Methods', 'GET,POST,OPTIONS')
+            return $res
+                ->withHeader('Access-Control-Allow-Methods', 'GET,POST,OPTIONS')
                 ->withHeader('Access-Control-Allow-Headers', 'Content-Type, X-Requested-With')
                 ->withHeader('Access-Control-Max-Age', '86400');
         };
 
+        // Preflight: answer immediately
         if (strtoupper($request->getMethod()) === 'OPTIONS') {
-            return $add(new SlimResponse(204));
+            return $apply(new SlimResponse(204));
         }
 
-        return $add($handler->handle($request));
+        $response = $handler->handle($request);
+        return $apply($response);
+    }
+
+    private function resolveAllowedOrigin(?string $origin): ?string
+    {
+        if ($origin === null || $origin === '') return null;
+
+        if ($this->allowList === '*') {
+            return $origin;
+        }
+
+        // exact matches
+        if (in_array($origin, $this->allowList, true)) return $origin;
+
+        // dev nicety: allow any localhost port
+        $bareLocalhostAllowed = in_array('http://localhost', $this->allowList, true);
+        $bare127Allowed       = in_array('http://127.0.0.1', $this->allowList, true);
+
+        if ($bareLocalhostAllowed && str_starts_with($origin, 'http://localhost:')) return $origin;
+        if ($bare127Allowed       && str_starts_with($origin, 'http://127.0.0.1:')) return $origin;
+
+        return null;
     }
 }
