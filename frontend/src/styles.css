@@ -71,12 +71,12 @@ body {
     margin: 0 0 8px;
     font-weight: 700;
     font-size: 32px;
-    color: var(--accent); /* stronger headline on warm background */
+    color: var(--accent);
 }
 
 .banner p {
     margin: 0 0 16px;
-    color: #111; /* improved contrast */
+    color: #111;
     opacity: .9;
 }
 
@@ -295,6 +295,12 @@ textarea {
     outline-offset: 2px;
 }
 
+.pagebtn:disabled {
+    opacity: .6;
+    cursor: not-allowed;
+    transform: none;
+}
+
 /* Errors & alerts */
 .error {
     color: var(--danger);
@@ -346,6 +352,17 @@ textarea {
     border-color: var(--accent);
     color: var(--accent);
     font-weight: 700;
+}
+
+/* smooth page-change */
+.fade-enter {
+    opacity: 0;
+    transform: translateY(6px);
+}
+.fade-enter-active {
+    opacity: 1;
+    transform: translateY(0);
+    transition: opacity .18s ease, transform .18s ease;
 }
 
 /* ==========================================================================
