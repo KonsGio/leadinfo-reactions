@@ -1,10 +1,47 @@
+# === PHP / Slim backend ===
 /vendor/
-/.env
+composer.lock
+/.phpunit.cache/
+.phpunit.result.cache
 /storage/logs/*
 !/storage/logs/.gitkeep
 /storage/test-logs/*
 !/storage/test-logs/.gitkeep
-/.phpunit.cache
-/composer.lock
+/storage/cache/*
+!/storage/cache/.gitkeep
+/storage/framework/*
+!/storage/framework/.gitkeep
+/.env
+/.env.local
+/.env.testing
+
+# === Node / React frontend ===
 /node_modules/
 /dist/
+/.vite/
+/.vite-inspect/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+*.tsbuildinfo
+
+# === Build & temp ===
+/coverage/
+/tmp/
+/cache/
+/.idea/
+/.vscode/
+/.DS_Store
+Thumbs.db
+
+# === Docker / Containers ===
+/docker-compose.override.yml
+/.docker/
+/.env.docker
+
+# === Logs ===
+*.log
+
+# === OS Specific ===
+.DS_Store
