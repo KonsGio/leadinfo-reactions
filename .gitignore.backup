@@ -1,8 +1,9 @@
 # === BACKEND ===
-backend/vendor/
+backend/vendor
 backend/composer.lock
 backend/composer.phar
 backend/.phpunit.cache
+backend/frontend/.env
 
 # Logs and storage
 backend/storage/
