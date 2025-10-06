@@ -14,7 +14,7 @@ composer.lock
 /.env
 /.env.local
 /.env.testing
-.idea
+/.idea
 
 # === Node / React frontend ===
 /node_modules/
