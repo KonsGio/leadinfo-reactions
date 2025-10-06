@@ -47,8 +47,14 @@ be-install: ## Install backend composer deps inside api container image
 	$(COMPOSE) run --rm api composer install --no-interaction --prefer-dist
 
 fe-install: ## Install frontend npm deps on the host
-	@echo "Installing frontend dependencies (npm ci)…"
-	cd $(FRONTEND) && npm ci
+	@echo "Installing frontend dependencies…"
+	@cd "$(FRONTEND)" && \
+	if [ -f package-lock.json ]; then \
+		echo "→ using npm ci"; npm ci; \
+	else \
+		echo "→ no lockfile found, running npm install to create one"; npm install; \
+	fi
+	@echo "✅ Frontend deps ready. (Consider committing frontend/package-lock.json)"
 
 # -----------------------------------------------------------------------------
 # Docker lifecycle
