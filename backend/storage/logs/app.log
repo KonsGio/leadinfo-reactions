@@ -1,2 +1,0 @@
-[2025-10-06 10:53:45.719444] api.WARNING: response {"kind":"problem","status":422,"title":"Validation Failed","errors":["name","email","title","message","rating"],"type":"about:blank"} 
-[2025-10-06 10:54:07.981619] api.WARNING: response {"kind":"problem","status":422,"title":"Validation Failed","errors":["email","title","message","rating"],"type":"about:blank"} 

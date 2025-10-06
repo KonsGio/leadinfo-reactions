@@ -1,40 +1,39 @@
-# Node
-node_modules/
-frontend/node_modules/
-frontend/dist/
+# === BACKEND ===
+/vendor/
+/composer.lock
+/composer.phar
+/.phpunit.cache
+/phpunit.xml
 
-# Environment
-.env
-frontend/.env
-
-# Composer / PHP vendor
-vendor/
-composer.lock
-composer.phar
-
-# PHP / testing
-.phpunit.cache/
-phpunit.xml
+# Logs and storage
 /storage/logs/*
 !/storage/logs/.gitkeep
 /storage/test-logs/*
 !/storage/test-logs/.gitkeep
 
-# IDE / editor
+# Environment files
+/.env
+
+# === FRONTEND ===
+/frontend/node_modules/
+/frontend/dist/
+/frontend/.env
+
+# Node
+/node_modules/
+/dist/
+/package-lock.json
+
+# === EDITORS & SYSTEM ===
 .idea/
 .vscode/
 .DS_Store
+Thumbs.db
 
-# Build / cache
-dist/
-frontend/dist/
+# === OTHER ===
+/tmp/
+*.pid
+*.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
-
-# Docker
-*.pid
-docker/*.log
-
-# Misc
-/tmp/
