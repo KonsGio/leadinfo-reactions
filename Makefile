@@ -64,6 +64,7 @@ up: ## Build containers, start stack, wait for DB, then seed schema
 	$(COMPOSE) up -d
 	@$(MAKE) wait-db
 	@$(MAKE) seed
+	@cd $(FRONTEND) && npm run dev
 	@echo "✅ Stack is ready."
 
 wait-db: ## Wait until MySQL is accepting connections
@@ -142,3 +143,40 @@ fe-preview: ## Preview built frontend (after fe-build)
 clean: ## Remove node_modules & dist in frontend (local cleanup)
 	rm -rf $(FRONTEND)/node_modules $(FRONTEND)/dist
 	@echo "🧽 Frontend artifacts removed."
+
+docker-prune: ## Remove dangling images/containers/volumes (destructive)
+	@docker system prune -f
+
+# -----------------------------------------------------------------------------
+# Deep Git Cleanup
+# -----------------------------------------------------------------------------
+
+purge-ignored: ## Remove all ignored files via git clean
+	@echo "🧨 Purging ignored files via git clean -Xdf…"
+	@git clean -Xdf
+	@echo "✅ Done."
+
+purge-hard: ## Force purge vendor/storage/caches and recreate required dirs
+	@echo "🧨 HARD PURGE: removing vendor, storage, caches, node_modules, dist…"
+
+	@echo "🔧 Fixing permissions on storage, vendor etc…"
+	@sudo chmod -R 0777 backend/storage 2>/dev/null || true
+	@sudo chmod -R 0777 backend/vendor 2>/dev/null || true
+	@sudo chmod -R 0777 backend/.phpunit.cache  2>/dev/null || true
+
+	# Backend
+	@rm -rf backend/vendor \
+	        backend/storage \
+	        backend/.phpunit.cache \
+	        backend/composer.lock
+	# Frontend
+	@rm -rf frontend/node_modules \
+	        frontend/dist \
+	        frontend/package-lock.json
+	# Optional: also wipe anything ignored that might linger
+	@git clean -Xdf
+
+	@echo "✅ HARD PURGE complete."
+	@echo "💡 Next steps:"
+	@echo "   make init   # reinstall deps & recreate .envs"
+	@echo "   make up     # rebuild & start containers"
