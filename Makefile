@@ -54,7 +54,7 @@ fe-install: ## Install frontend npm deps on the host
 	else \
 		echo "→ no lockfile found, running npm install to create one"; npm install; \
 	fi
-	@echo "✅ Frontend deps ready. (Consider committing frontend/package-lock.json)"
+	@echo "✅ Frontend deps ready."
 
 # -----------------------------------------------------------------------------
 # Docker lifecycle

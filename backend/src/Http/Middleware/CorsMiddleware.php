@@ -11,41 +11,51 @@ use Slim\Psr7\Response as SlimResponse;
 /**
  * Handles CORS: adds cross-origin headers and short-circuits OPTIONS requests.
  */
-final readonly class CorsMiddleware
-{
-    public function __construct(private string $allowedOrigin)
-    {
-    }
-
+final class CorsMiddleware {
 
     /**
-     * __invoke() is used by Slim automatically, no manual call needed.
-     *
-     * @param Request $request
-     * @param Handler $handler
-     * @return Response
+     * @param array|string $allowed
      */
-    public function __invoke(Request $request, Handler $handler): Response
-    {
-        // Small helper to attach headers consistently
-        $applyCorsHeaders = function (Response $response): Response {
-            $origin = $this->allowedOrigin ?: '*';
-            return $response
-                ->withHeader('Access-Control-Allow-Origin', $origin)
-                ->withHeader('Vary', 'Origin')
-                ->withHeader('Access-Control-Allow-Methods', 'GET,POST,OPTIONS')
+    public function __construct(private array|string $allowed) {
+        $this->allowed = is_array($allowed) ? $allowed : [$allowed];
+    }
+
+    /**
+     * @param string|null $reqOrigin
+     * @return string|null
+     */
+    private function pickOrigin(?string $reqOrigin): ?string {
+        if (!$reqOrigin) return null;
+        foreach ($this->allowed as $o) {
+            if (strcasecmp($o, $reqOrigin) === 0 || $o === '*') return $reqOrigin;
+        }
+        // if '*' present, reflect reqOrigin (no credentials)
+        return in_array('*', $this->allowed, true) ? '*' : null;
+    }
+
+    /**
+     * @param $request
+     * @param $handler
+     * @return mixed
+     */
+    public function __invoke($request, $handler) {
+        $reqOrigin = $request->getHeaderLine('Origin') ?: null;
+        $allow = $this->pickOrigin($reqOrigin);
+
+        $add = function ($res) use ($allow) {
+            if ($allow) {
+                $res = $res->withHeader('Access-Control-Allow-Origin', $allow)
+                    ->withHeader('Vary', 'Origin');
+            }
+            return $res->withHeader('Access-Control-Allow-Methods', 'GET,POST,OPTIONS')
                 ->withHeader('Access-Control-Allow-Headers', 'Content-Type, X-Requested-With')
-                ->withHeader('Access-Control-Expose-Headers', 'X-Request-Id')
                 ->withHeader('Access-Control-Max-Age', '86400');
         };
 
-        // Handle browser preflight requests quickly
         if (strtoupper($request->getMethod()) === 'OPTIONS') {
-            return $applyCorsHeaders(new SlimResponse(204));
+            return $add(new SlimResponse(204));
         }
 
-        // For normal requests, continue through stack and then add headers
-        $response = $handler->handle($request);
-        return $applyCorsHeaders($response);
+        return $add($handler->handle($request));
     }
 }
