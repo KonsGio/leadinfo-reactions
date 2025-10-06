@@ -3,7 +3,7 @@ backend/vendor
 backend/composer.lock
 backend/composer.phar
 backend/.phpunit.cache
-backend/frontend/.env
+backend/.env
 
 # Logs and storage
 backend/storage/
