@@ -12,7 +12,7 @@ up:
 seed:
 	@echo "🌱 Seeding database..."
 	docker exec -i $$(docker compose ps -q db) \
-		sh -c 'exec mysql -h 127.0.0.1 -uroot -psecret leadinfo' < backend/Database/migrations/schema.sql
+		sh -c 'exec mysql -h 127.0.0.1 -uroot -psecret leadinfo' < backend/src/Database/migrations/schema.sql
 	@echo "✅ Database seeded."
 
 down:
