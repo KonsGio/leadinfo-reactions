@@ -53,7 +53,7 @@ final class ResponseFactory
      * @param array $extra
      * @return Response
      */
-    public function problem(Response $res, int $status, string $title, array $extra = []): Response
+    public function  problem(Response $res, int $status, string $title, array $extra = []): Response
     {
         $payload = array_merge([
             'type' => 'about:blank',

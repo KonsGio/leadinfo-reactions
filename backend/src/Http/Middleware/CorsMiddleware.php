@@ -4,7 +4,7 @@
  * CORS guard.
  * - Adds Access-Control-* headers to all responses.
  * - Returns 204 immediately for OPTIONS preflight.
- * - Keep this outermost so every response is CORS-friendly.
+ * - Keeping this outermost so every response is CORS-friendly.
  */
 
 declare(strict_types=1);
