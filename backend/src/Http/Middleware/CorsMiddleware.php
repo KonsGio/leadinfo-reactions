@@ -79,7 +79,7 @@ final class CorsMiddleware
         // exact matches
         if (in_array($origin, $this->allowList, true)) return $origin;
 
-        // dev nicety: allow any localhost port
+        //allow any localhost port
         $bareLocalhostAllowed = in_array('http://localhost', $this->allowList, true);
         $bare127Allowed       = in_array('http://127.0.0.1', $this->allowList, true);
 
