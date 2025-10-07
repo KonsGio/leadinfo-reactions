@@ -1,3 +1,11 @@
+/**
+ *
+ * @param total
+ * @param lastNice
+ * @param onAdd
+ * @returns {JSX.Element}
+ * @constructor
+ */
 export default function Banner({total, lastNice, onAdd}) {
     return (
         <header className="banner">

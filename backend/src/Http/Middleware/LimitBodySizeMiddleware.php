@@ -1,4 +1,12 @@
 <?php
+
+/**
+ * Payload size guard.
+ * - Rejects bodies larger than the configured limit.
+ * - Fails fast with 413 (problem+json) before we parse anything.
+ * - Good for DOS protection and noisy clients.
+ */
+
 declare(strict_types=1);
 
 namespace App\Http\Middleware;
@@ -15,11 +23,11 @@ final class LimitBodySizeMiddleware
 {
     /**
      * @param int $maxBytes
-     * @param ResponseFactory $json
+     * @param ResponseFactory $responseFactory
      */
     public function __construct(
-        private readonly int             $maxBytes,
-        private readonly ResponseFactory $json
+        private int             $maxBytes,
+        private ResponseFactory $responseFactory
     )
     {
     }
@@ -35,8 +43,8 @@ final class LimitBodySizeMiddleware
     {
         $length = (int)($request->getHeaderLine('Content-Length') ?: 0);
         if ($this->maxBytes > 0 && $length > $this->maxBytes) {
-            return $this->json->problem(
-                $this->json->empty(),
+            return $this->responseFactory->problem(
+                $this->responseFactory->empty(),
                 413,
                 'Payload Too Large',
                 ['detail' => 'Request exceeds size limit']

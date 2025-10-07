@@ -12,7 +12,8 @@ use Slim\Psr7\Factory\ServerRequestFactory;
 final class ApiBasicTest extends TestCase
 {
     /**
-     * /api/health should return 200 so the UI can show “service up”.
+     * Basic health check should always return 200.
+     * This ensures the Slim app boots correctly and routes are loaded.
      *
      * @return void
      * @throws DependencyException
@@ -29,21 +30,23 @@ final class ApiBasicTest extends TestCase
     }
 
     /**
-     * Happy path:
-     * 1) list is empty
-     * 2) create one valid reaction (201)
-     * 3) list again shows exactly one item
+     * Full end-to-end reaction flow:
+     * 1. List is empty
+     * 2. Create a valid reaction (POST)
+     * 3. List again shows exactly one item
+     *
+     *This tests routing, validation, database persistence, and response formatting.
      *
      * @return void
-     * @throws JsonException
      * @throws DependencyException
+     * @throws JsonException
      * @throws NotFoundException
      */
     public function test_list_create_list(): void
     {
         $app = make_test_app();
 
-        // 1) First list (empty)
+        // 1) first list (empty)
         $reqList1 = (new ServerRequestFactory())
             ->createServerRequest('GET', '/api/reactions?limit=3&page=1');
 
@@ -53,7 +56,7 @@ final class ApiBasicTest extends TestCase
         $body1 = json_decode((string)$resList1->getBody(), true, flags: JSON_THROW_ON_ERROR);
         $this->assertSame(0, $body1['meta']['total']);
 
-        // 2) Create one
+        // 2) create one
         $reqCreate = (new ServerRequestFactory())
             ->createServerRequest('POST', '/api/reactions')
             ->withHeader('Content-Type', 'application/json');
@@ -71,7 +74,7 @@ final class ApiBasicTest extends TestCase
         $resCreate = $app->handle($reqCreate);
         $this->assertSame(201, $resCreate->getStatusCode());
 
-        // 3) List again (now 1)
+        // 3) list again (now 1)
         $reqList2 = (new ServerRequestFactory())
             ->createServerRequest('GET', '/api/reactions?limit=3&page=1');
 

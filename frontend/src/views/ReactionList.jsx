@@ -1,5 +1,11 @@
 import StarRating from './StarRating.jsx'
 
+/**
+ *
+ * @param items
+ * @returns {JSX.Element|null}
+ * @constructor
+ */
 export default function ReactionList({ items = [] }) {
     if (!items.length) return null
 

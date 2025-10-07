@@ -1,4 +1,114 @@
 <?php
+
+/**
+ * Backend request flow (Slim 4) — quick map for new devs
+ *
+ * Why this file matters:
+ * - Wires the container, logging, database, and builds the Slim app.
+ * - Registers middlewares in the order they run.
+ * - Attaches the routes.
+ *
+ * Request lifecycle (outer → inner):
+ *  1) CorsMiddleware            → adds CORS headers, short-circuits OPTIONS
+ *  2) LimitBodySizeMiddleware  → blocks huge requests early (413)
+ *  3) RequireJsonMiddleware    → enforces Content-Type: application/json for POST/PUT/PATCH
+ *  4) JsonBodyMiddleware       → parses JSON; bad JSON → 400 problem+json
+ *  5) (Routing)                → matches /api/... and calls the controller
+ *
+ * On errors:
+ * - ProblemDetailsHandler turns exceptions into RFC7807 "problem+json".
+ * - Logger records structured info so we can debug quickly.
+ *
+ * Tip:
+ * - Middlewares are order-sensitive. If you change order, know why.
+ * - Keep guards (CORS/size/JSON) on the outside, app logic on the inside.
+ *
+ * ┌──────────────────────────────┐
+ * │        HTTP Client           │
+ * │ (Browser / cURL / Frontend)  │
+ * └──────────────┬───────────────┘
+ * │
+ * ▼
+ * ┌────────────────────┐
+ * │  CORS Middleware   │
+ * │  → adds Access-*   │
+ * │  → handles OPTIONS │
+ * └─────────┬──────────┘
+ * │
+ * ▼
+ * ┌────────────────────┐
+ * │ LimitBodySize      │
+ * │  → 413 if too big  │
+ * └─────────┬──────────┘
+ * │
+ * ▼
+ * ┌────────────────────┐
+ * │ RequireJson        │
+ * │  → 415 if wrong CT │
+ * └─────────┬──────────┘
+ * │
+ * ▼
+ * ┌────────────────────┐
+ * │ JsonBodyMiddleware │
+ * │  → parse JSON body │
+ * │  → 400 if invalid  │
+ * └─────────┬──────────┘
+ * │
+ * ▼
+ * ┌────────────────────┐
+ * │   Routing Layer    │
+ * │  (Slim dispatcher) │
+ * └─────────┬──────────┘
+ * │
+ * ▼
+ * ┌──────────────────────────┐
+ * │  Controller (e.g.        │
+ * │  ReactionController)     │
+ * │  → calls Service layer   │
+ * └─────────┬────────────────┘
+ * │
+ * ▼
+ * ┌──────────────────────────┐
+ * │  Service Layer           │
+ * │  (ReactionService)       │
+ * │  → validation + repo     │
+ * └─────────┬────────────────┘
+ * │
+ * ▼
+ * ┌──────────────────────────┐
+ * │  Repository Layer        │
+ * │  (PDO SQL access)        │
+ * └─────────┬────────────────┘
+ * │
+ * ▼
+ * ┌────────────────┐
+ * │   Database     │
+ * └────────────────┘
+ * │
+ * ▼
+ * ┌──────────────────────────┐
+ * │  ResponseFactory         │
+ * │  → ok(), created(),      │
+ * │    invalid(), problem()  │
+ * │  → consistent JSON body  │
+ * └─────────┬────────────────┘
+ * │
+ * ▼
+ * ┌───────────────────────────────────┐
+ * │  ProblemDetailsHandler (errors)   │
+ * │  → catches exceptions             │
+ * │  → returns RFC7807 problem+json   │
+ * └───────────────────────────────────┘
+ * │
+ * ▼
+ * ┌──────────────────────────────┐
+ * │  Client receives JSON only   │
+ * │  ✅ Success (200/201)        │
+ * │  ⚠️ Problem (422/400/415/500) │
+ * └──────────────────────────────┘
+ */
+
+
 declare(strict_types=1);
 
 use App\Domain\Repository\ReactionRepository;

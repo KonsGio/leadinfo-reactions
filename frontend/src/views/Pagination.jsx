@@ -1,3 +1,11 @@
+/**
+ * 
+ * @param page
+ * @param pages
+ * @param onPage
+ * @returns {JSX.Element|null}
+ * @constructor
+ */
 export default function Pagination({page, pages, onPage}) {
     if (pages <= 1) return null
     const prev = Math.max(1, page - 1)

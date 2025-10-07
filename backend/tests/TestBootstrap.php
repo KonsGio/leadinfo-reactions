@@ -7,6 +7,7 @@ use DI\Container;
 use DI\DependencyException;
 use DI\NotFoundException;
 use Monolog\Handler\StreamHandler;
+use Monolog\Level;
 use Monolog\Logger;
 use Psr\Log\LoggerInterface;
 use Slim\App;
@@ -39,7 +40,7 @@ function make_test_app(): App
         ],
     ]);
 
-    // In-memory SQLite schema
+    // in-memory SQLite schema
     $container->set(PDO::class, function () {
         $pdo = new PDO('sqlite::memory:');
         $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
@@ -67,11 +68,10 @@ function make_test_app(): App
         $file = $logDir . '/test-' . date('Y-m-d') . '.log';
 
         $logger = new Logger('test');
-        // Log everything for tests, including INFO (successful messages)
-        $logger->pushHandler(new StreamHandler($file, Logger::INFO));
+        $logger->pushHandler(new StreamHandler($file, Level::Info));
 
-        // (optional) also mirror to stderr, handy in CI
-        $logger->pushHandler(new StreamHandler('php://stderr', Logger::DEBUG));
+        // mirror to stderr for CI
+        $logger->pushHandler(new StreamHandler('php://stderr', Level::Debug));
 
         return $logger;
     });
@@ -79,19 +79,19 @@ function make_test_app(): App
     $container->set('access_logger', function () {
         // write test access logs to /tmp to avoid polluting repo logs
         $file = sys_get_temp_dir() . '/leadinfo-access-' . date('Y-m-d') . '.log';
-        $log = new \Monolog\Logger('access');
-        $log->pushHandler(new \Monolog\Handler\StreamHandler($file, \Monolog\Level::Info));
+        $log = new Logger('access');
+        $log->pushHandler(new StreamHandler($file, Level::Info));
         return $log;
     });
 
-    // Slim app
+    // slim app
     AppFactory::setContainer($container);
     $app = AppFactory::create();
 
-    // Important for route matching
+    // important for route matching
     $app->addRoutingMiddleware();
 
-    // Error handling -> RFC7807 via our ProblemDetailsHandler
+    // error handling -> RFC7807 via our ProblemDetailsHandler
     $logger = $container->get(LoggerInterface::class);
     $errors = $app->addErrorMiddleware(true, true, true, $logger);
     $errors->setDefaultErrorHandler(new ProblemDetailsHandler(
@@ -101,7 +101,7 @@ function make_test_app(): App
         $container->get(ResponseFactory::class)
     ));
 
-    // Guards (same order as runtime)
+    // guards (same order as runtime)
     $jsonResponder = $container->get(ResponseFactory::class);
     $allowedOrigin = $container->get('config')['app']['origin'];
 
@@ -110,7 +110,7 @@ function make_test_app(): App
     $app->add(new RequireJsonMiddleware($jsonResponder));             // 415 for wrong Content-Type on mutating methods
     $app->add(new JsonBodyMiddleware($jsonResponder));                // 400 for malformed JSON
 
-    // Routes (shared with real app)
+    // routes (shared with real app)
     (require __DIR__ . '/../routes/web.php')($app);
 
     return $app;

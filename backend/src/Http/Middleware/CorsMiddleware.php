@@ -1,4 +1,12 @@
 <?php
+
+/**
+ * CORS guard.
+ * - Adds Access-Control-* headers to all responses.
+ * - Returns 204 immediately for OPTIONS preflight.
+ * - Keep this outermost so every response is CORS-friendly.
+ */
+
 declare(strict_types=1);
 
 namespace App\Http\Middleware;
@@ -13,6 +21,9 @@ final class CorsMiddleware
     /** @var string[]|'*' */
     private array|string $allowList;
 
+    /**
+     * @param string $originsCsvOrStar
+     */
     public function __construct(string $originsCsvOrStar)
     {
         $originsCsvOrStar = trim($originsCsvOrStar);
@@ -21,6 +32,13 @@ final class CorsMiddleware
         ));
     }
 
+    /**
+     * __invoke() is used by Slim automatically, no manual call needed.
+     *
+     * @param Request $request
+     * @param Handler $handler
+     * @return Response
+     */
     public function __invoke(Request $request, Handler $handler): Response
     {
         $origin = $request->getHeaderLine('Origin');
@@ -37,7 +55,7 @@ final class CorsMiddleware
                 ->withHeader('Access-Control-Max-Age', '86400');
         };
 
-        // Preflight: answer immediately
+        // preflight: answer immediately
         if (strtoupper($request->getMethod()) === 'OPTIONS') {
             return $apply(new SlimResponse(204));
         }
@@ -46,6 +64,10 @@ final class CorsMiddleware
         return $apply($response);
     }
 
+    /**
+     * @param string|null $origin
+     * @return string|null
+     */
     private function resolveAllowedOrigin(?string $origin): ?string
     {
         if ($origin === null || $origin === '') return null;

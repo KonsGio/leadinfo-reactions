@@ -137,6 +137,11 @@ fe-build: ## Build frontend for production
 fe-preview: ## Preview built frontend (after fe-build)
 	cd $(FRONTEND) && npm run preview
 
+fe-stop: ## Stop the Vite dev server if running
+	@echo "🛑 Stopping frontend (vite)..."
+	@pkill -f "vite" || true
+
+
 # -----------------------------------------------------------------------------
 # Misc
 # -----------------------------------------------------------------------------
@@ -174,8 +179,10 @@ purge-hard: ## Force purge vendor/storage/caches and recreate required dirs
 	@rm -rf frontend/node_modules \
 	        frontend/dist \
 	        frontend/package-lock.json
+
 	@git clean -Xdf
 	$(COMPOSE) down --rmi local -v --remove-orphans
+	@pkill -f "vite" || true
 
 	@echo "✅ HARD PURGE complete."
 	@echo "💡 Next steps:"

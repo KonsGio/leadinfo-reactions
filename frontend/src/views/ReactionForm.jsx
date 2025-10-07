@@ -2,6 +2,13 @@ import {useState} from 'react'
 import StarRating from './StarRating.jsx'
 import {api} from '../services/api'
 
+/**
+ *
+ * @param onCreated
+ * @param onClose
+ * @returns {JSX.Element}
+ * @constructor
+ */
 export default function ReactionForm({onCreated, onClose}) {
     const [form, setForm] = useState({name: '', email: '', title: '', message: '', rating: 0})
     const [errors, setErrors] = useState({})

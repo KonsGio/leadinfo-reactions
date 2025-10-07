@@ -1,4 +1,12 @@
 <?php
+
+/**
+ * Content-Type guard for mutating routes.
+ * - For POST/PUT/PATCH: requires `Content-Type: application/json`.
+ * - If missing/wrong → 415 with problem+json.
+ * - Prevents "I sent form-data by accident" bugs from hitting controllers.
+ */
+
 declare(strict_types=1);
 
 namespace App\Http\Middleware;
@@ -12,7 +20,7 @@ use Psr\Http\Server\RequestHandlerInterface as Handler;
  * For write methods, require Content-Type: application/json.
  * Skips GET/HEAD/OPTIONS.
  */
-final readonly class RequireJsonMiddleware
+final class RequireJsonMiddleware
 {
     /**
      * @param ResponseFactory $responseFactory

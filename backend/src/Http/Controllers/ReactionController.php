@@ -1,4 +1,13 @@
 <?php
+
+/**
+ * Reactions controller (thin).
+ * - Reads inputs from query/body.
+ * - Delegates to ReactionService for business rules.
+ * - Uses ResponseFactory helpers: ok(), created(), invalid().
+ * - No DB or validation here that lives in service/repo/validator.
+ */
+
 declare(strict_types=1);
 
 namespace App\Http\Controllers;
@@ -8,17 +17,22 @@ use App\Http\Response\ResponseFactory;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Psr\Http\Message\ResponseInterface as Response;
 
-final readonly class ReactionController
+final class ReactionController
 {
+    private ReactionService $reactionService;
+    private ResponseFactory $responseFactory;
+
     /**
      * @param ReactionService $reactionService
      * @param ResponseFactory $responseFactory
      */
     public function __construct(
-        private ReactionService $reactionService,
-        private ResponseFactory $responseFactory
+        ReactionService $reactionService,
+        ResponseFactory $responseFactory
     )
     {
+        $this->responseFactory = $responseFactory;
+        $this->reactionService = $reactionService;
     }
 
     /**

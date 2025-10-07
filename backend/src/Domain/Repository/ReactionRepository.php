@@ -9,10 +9,13 @@ use App\Domain\Entity\Reaction;
 /**
  * Data access for reactions (PDO-based).
  */
-final readonly class ReactionRepository
+final class ReactionRepository
 {
-    public function __construct(private PDO $connection)
+    private PDO $connection;
+
+    public function __construct(PDO $connection)
     {
+        $this->connection = $connection;
     }
 
     /**

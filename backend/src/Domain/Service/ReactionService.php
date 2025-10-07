@@ -9,20 +9,24 @@ use App\Domain\Entity\Reaction;
 
 /**
  * Business logic for reading and creating reactions.
- *
- * Keeps controller thin and delegates DB + validation logic to collaborators.
+ * Keeps controller thin and delegates DB + validation logic.
  */
-final readonly class ReactionService
+final class ReactionService
 {
+    private ReactionRepository $reactionRepository;
+    private ReactionValidator $reactionValidator;
+
     /**
      * @param ReactionRepository $reactionRepository
      * @param ReactionValidator $reactionValidator
      */
     public function __construct(
-        private ReactionRepository $reactionRepository,
-        private ReactionValidator  $reactionValidator,
+        ReactionRepository $reactionRepository,
+        ReactionValidator  $reactionValidator,
     )
     {
+        $this->reactionValidator = $reactionValidator;
+        $this->reactionRepository = $reactionRepository;
     }
 
     /**
@@ -35,17 +39,17 @@ final readonly class ReactionService
      */
     public function list(int $pageNumber, int $pageSize): array
     {
-        // Input guards
+        // input guards
         $pageNumber = max(1, $pageNumber);
         $pageSize = max(1, $pageSize);
 
-        // Fetch from repository
+        // fetch from repository
         $reactions = $this->reactionRepository->paginate($pageNumber, $pageSize);
         $totalRows = $this->reactionRepository->total();
         $totalPages = max(1, (int)ceil($totalRows / $pageSize));
         $lastCreatedAt = $this->reactionRepository->lastCreatedAt();
 
-        // Convert entities → API-ready arrays
+        // convert entities → API-ready arrays
         $items = array_map(static fn(Reaction $reaction) => [
             'id' => $reaction->id,
             'name' => $reaction->name,
@@ -75,7 +79,7 @@ final readonly class ReactionService
      */
     public function create(array $input): object
     {
-        // Normalize and sanitize payload
+        // normalize and sanitize payload
         $normalized = [
             'name' => trim((string)($input['name'] ?? '')),
             'email' => trim((string)($input['email'] ?? '')),
@@ -84,7 +88,7 @@ final readonly class ReactionService
             'rating' => (int)($input['rating'] ?? 0),
         ];
 
-        // Validate fields
+        // validate fields
         $validationErrors = $this->reactionValidator->validate($normalized);
         if ($validationErrors) {
             return (object)[
@@ -93,7 +97,7 @@ final readonly class ReactionService
             ];
         }
 
-        // Save and return new ID
+        // save and return new ID
         $reaction = $this->reactionRepository->create($normalized);
 
         return (object)[

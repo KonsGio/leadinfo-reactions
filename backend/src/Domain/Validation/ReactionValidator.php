@@ -3,10 +3,11 @@ declare(strict_types=1);
 
 namespace App\Domain\Validation;
 
-/** Simple per-field validation per assignment rules. */
 final class ReactionValidator
 {
     /**
+     * Simple per-field validation per assignment rules.
+     *
      * @param array $data
      * @return array
      */

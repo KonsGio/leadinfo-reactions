@@ -1,4 +1,12 @@
 <?php
+
+/**
+ * JSON parser + 400 handler.
+ * - Parses JSON into `$request->getParsedBody()`.
+ * - If JSON is invalid → 400 with problem+json (clean message).
+ * - This runs after RequireJsonMiddleware so we only parse when type is right.
+ */
+
 declare(strict_types=1);
 
 namespace App\Http\Middleware;
@@ -12,7 +20,7 @@ use Psr\Http\Server\RequestHandlerInterface as Handler;
 /**
  * Parses JSON request bodies. On invalid JSON → 400 problem+json.
  */
-final readonly class JsonBodyMiddleware
+final class JsonBodyMiddleware
 {
     /**
      * @param ResponseFactory $json

@@ -1,4 +1,12 @@
 <?php
+
+/**
+ * Global error → RFC7807 adapter.
+ * - Catches unhandled exceptions and emits a standard problem+json body.
+ * - Uses our ResponseFactory so logs are consistent (status, title, fields).
+ * - Keeps error responses predictable for the frontend and tests.
+ */
+
 declare(strict_types=1);
 
 namespace App\Http\Middleware;
@@ -23,10 +31,10 @@ final class ProblemDetailsHandler extends ErrorHandler
      * @param ResponseFactory $responseHelper
      */
     public function __construct(
-        CallableResolverInterface        $callableResolver,
-        ResponseFactoryInterface         $responseFactory,
-        protected LoggerInterface        $logger,
-        private readonly ResponseFactory $responseHelper
+        CallableResolverInterface $callableResolver,
+        ResponseFactoryInterface  $responseFactory,
+        protected LoggerInterface $logger,
+        private ResponseFactory   $responseHelper
     )
     {
         parent::__construct($callableResolver, $responseFactory);
@@ -39,17 +47,17 @@ final class ProblemDetailsHandler extends ErrorHandler
      */
     protected function respond(): ResponseInterface
     {
-        $status    = $this->statusCode ?: 500;
+        $status = $this->statusCode ?: 500;
         $exception = $this->exception;
-        $req       = $this->request;
-        $rid       = $req?->getAttribute('request_id');
+        $req = $this->request;
+        $rid = $req?->getAttribute('request_id');
 
         $this->logger->error('unhandled_exception', [
             'request_id' => $rid,
-            'status'     => $status,
-            'message'    => $exception?->getMessage(),
-            'method'     => $req?->getMethod(),
-            'path'       => $req?->getUri()->getPath(),
+            'status' => $status,
+            'message' => $exception?->getMessage(),
+            'method' => $req?->getMethod(),
+            'path' => $req?->getUri()->getPath(),
         ]);
 
         return $this->responseHelper->problem(
@@ -57,7 +65,7 @@ final class ProblemDetailsHandler extends ErrorHandler
             $status,
             $status >= 500 ? 'Server Error' : 'Request Error',
             [
-                'detail'   => $exception?->getMessage(),
+                'detail' => $exception?->getMessage(),
                 'instance' => $rid ? ('urn:req:' . $rid) : null,
             ]
         );

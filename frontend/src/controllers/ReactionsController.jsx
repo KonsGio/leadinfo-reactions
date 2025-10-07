@@ -10,7 +10,7 @@ export default function ReactionsController() {
     const [items, setItems] = useState([])
     const [meta, setMeta] = useState({ total:0, perPage:3, page:1, pages:1, last:null })
     const [loading, setLoading] = useState(true)
-    const [phase, setPhase] = useState('idle') // 'idle' | 'enter'
+    const [phase, setPhase] = useState('idle')
     const [error, setError] = useState(null)
     const [showForm, setShowForm] = useState(false)
 
